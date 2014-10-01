@@ -12,6 +12,10 @@ public:
 		m_PropertySheetHelper(PropertySheetHelper)
 	{
 		CPageDisk::ms_this = this;
+
+		hdd1Selection = -1;
+		hdd2Selection = -1;
+
 	}
 	virtual ~CPageDisk(){}
 
@@ -35,8 +39,8 @@ private:
 	static const TCHAR m_defaultDiskOptions[];
 	static const TCHAR m_defaultHDDOptions[];
 
-	int  hdd1Selection = -1;
-	int  hdd2Selection = -1;
+	int hdd1Selection;
+	int hdd2Selection;
 
 	const PAGETYPE m_Page;
 	CPropertySheetHelper& m_PropertySheetHelper;
