@@ -105,12 +105,10 @@
 #define IDC_CURSORCONTROL               1066
 #define IDC_AUTOFIRE                    1067
 #define IDC_CENTERINGCONTROL            1068
-#define IDC_COMBO2                      1073
-#define IDC_COMBO_HDD1                   1078
+#define IDC_COMBO_HDD1                  1078
 #define IDC_COMBOBOXEX2                 1079
-#define IDC_COMBO_HDD2                   1079
+#define IDC_COMBO_HDD2                  1079
 #define IDC_COMBO_DISK1                 1080
-#define IDC_COMBOFDD2                   1081
 #define IDC_COMBO_DISK2                 1081
 #define IDM_EXIT                        40001
 #define IDM_HELP                        40002
@@ -131,7 +129,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        147
 #define _APS_NEXT_COMMAND_VALUE         40012
-#define _APS_NEXT_CONTROL_VALUE         1080
+#define _APS_NEXT_CONTROL_VALUE         1082
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
