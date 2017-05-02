@@ -1614,17 +1614,16 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 	// DETERMINE THE NEW MEMORY PAGING MODE.
 	if ((address >= 0x80) && (address <= 0x8F))
 	{
-#ifdef SATURN
-
 #if defined(DEBUG_LANGUAGE_CARD)
 	static char text[ 128 ];
 	int isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
-	int isLC    = (memmode & MF_HIGHRAM ) ? 1 : 0;
+	int isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
 	int isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
-	sprintf( text, "SATURN: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC, isWrite );
+	sprintf( text, "LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC_on, isWrite );
 	OutputDebugStringA( text );
 #endif
 
+#ifdef SATURN
 /*
 		Bin   Addr.
 		      $C0N0 4K Bank A, RAM read, Write protect
@@ -1648,23 +1647,76 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 		{
 			if ((address & 7) > 3)
 			{
-				const size_t LC_START  = 0xC000;
-				const size_t BANK_SIZE = 0x10000 - LC_START; // $C000..$FFFF+1
-				LPBYTE pBaseAddr       = memmain + LC_START; // $D000
+				int iBankOffset = (SW_BANK2 ? 0 : 0x1000);
+				LPBYTE pMemAddr = SW_WRITERAM
+					?	SW_HIGHRAM
+						? mem
+						: memmain
+					: mem
+					;
 
 				int iPrevBank = g_uSaturnActiveBank;
 				g_uSaturnActiveBank = 0 // Saturn 128K Language Card Bank 0 .. 7
 					| (address >> 1) & 4
 					| (address >> 0) & 3
 					;
+				LPBYTE pSatAddr = g_aSaturnPages[ g_uSaturnActiveBank ];
 
+/*
+=== REPRO ===
+300:AD 84 C0
+303:AD 81 C0
+306:AD 81 C0
+309:A2 D0
+30B:86 FF
+30D:A0 00
+30F:84 FE
+311:B1 FE
+313:91 FE
+315:C8
+316:D0 F9
+318:E8
+319:D0 F2
+31B:AD 83 C0
+31E:AD 83 C0
+321:60
+
+=== WATCH ===
+*(memmain + 0xE000),x
+*((g_aSaturnPages[0]) + 0xE000 - 0xC000),x
+*((g_aSaturnPages[1]) + 0xE000 - 0xC000),x
+
+
+*/
 #if defined(DEBUG_LANGUAGE_CARD)
 	sprintf( text, "SATURN: Prev Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActiveBank );
 	OutputDebugStringA( text );
+	BYTE prevByte = *(mem + 0xE000);
+	BYTE nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x2000);
+	sprintf( text, "$E000: %02X <- SATURN: %02X\n", prevByte, nextByte );
+	OutputDebugStringA( text );
 #endif
 
-				memcpy( g_aSaturnPages[ iPrevBank ], pBaseAddr                            , BANK_SIZE );
-				memcpy( pBaseAddr                  , g_aSaturnPages[ g_uSaturnActiveBank ], BANK_SIZE );
+				// Sat  Mem
+				// 0000 D000 Slot # Bank A
+				// 1000 D000 Slot # Bank B
+				// 2000 E000 Slot #
+				// 3000 F000 Slot #
+
+				// Bank out the old slot
+				if( iPrevBank != g_uSaturnActiveBank)
+				{
+					modechanging = true;
+
+					memcpy( g_aSaturnPages[iPrevBank] + iBankOffset, mem + 0xD000, 0x1000 );
+					memcpy( g_aSaturnPages[iPrevBank] + 0x2000     , mem + 0xE000, 0x2000 ); // RAM  -> LC slot # old
+				}
+
+				// Bank in the new slot
+				memcpy( mem     + 0xD000, pSatAddr + iBankOffset, 0x1000 );
+				memcpy( mem     + 0xE000, pSatAddr + 0x2000     , 0x2000 ); // mem  <- LC slot # new
+
+				// NOTE: Do NOT mark memdirty
 
 				goto _done_saturn;
 			}
@@ -1677,17 +1729,19 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			SetMemMode(memmode & ~(MF_BANK2 | MF_HIGHRAM));
 
 			// Apple 16K Language Card
+			// C080 .. C087 Bank 2
+			// C088 .. C08F Bank 1
 			if (!(address & 8))
 				SetMemMode(memmode | MF_BANK2);
 
-			// C081    C089    Read ROM,     Write enable
-			// C082    C08A    Read ROM,     Write protect
+			// C081 == C089    Read ROM,     Write enable
+			// C082 == C08A    Read ROM,     Write protect
 			if (((address & 2) >> 1) == (address & 1))
 				SetMemMode(memmode | MF_HIGHRAM);
 
 			if (address & 1)	// GH#392
 			{
-#ifdef SATURN
+#if defined(SATURN)
 				if (g_uSaturnTotalBanks)
 				{
 					if ( g_bLastWriteRam ) // SATURN -- this differs then Apple's 16K LC???
@@ -1706,7 +1760,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			}
 		}
 
-#ifdef SATURN
+#if defined(SATURN)
 		if (g_uSaturnTotalBanks)  // SATURN -- this differs then Apple's 16K LC???
 			g_bLastWriteRam = (address & 1); // SATURN
 		else
