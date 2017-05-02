@@ -57,6 +57,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Debugger\DebugDefs.h"
 #include "YamlHelper.h"
 
+#define DEBUG_LANGUAGE_CARD
+
 #define  SW_80STORE    (memmode & MF_80STORE)
 #define  SW_ALTZP      (memmode & MF_ALTZP)
 #define  SW_AUXREAD    (memmode & MF_AUXREAD)
@@ -1195,6 +1197,10 @@ void MemInitialize()
 	UINT i = 1;
 	while ((i < g_uMaxExPages) && (RWpages[i] = (LPBYTE) VirtualAlloc(NULL,_6502_MEM_END+1,MEM_COMMIT,PAGE_READWRITE)))
 		i++;
+
+	// We can't set
+	//  g_eMemType = MEM_TYPE_RAMWORKS;
+	// Since that would blow away if the user has selected the Saturn 128K
 #endif
 
 #ifdef SATURN
@@ -1608,9 +1614,17 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 	// DETERMINE THE NEW MEMORY PAGING MODE.
 	if ((address >= 0x80) && (address <= 0x8F))
 	{
-		SetMemMode(memmode & ~(MF_BANK2 | MF_HIGHRAM));
-
 #ifdef SATURN
+
+#if defined(DEBUG_LANGUAGE_CARD)
+	static char text[ 128 ];
+	int isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
+	int isLC    = (memmode & MF_HIGHRAM ) ? 1 : 0;
+	int isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
+	sprintf( text, "SATURN: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC, isWrite );
+	OutputDebugStringA( text );
+#endif
+
 /*
 		Bin   Addr.
 		      $C0N0 4K Bank A, RAM read, Write protect
@@ -1634,21 +1648,34 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 		{
 			if ((address & 7) > 3)
 			{
+				const size_t LC_START  = 0xC000;
+				const size_t BANK_SIZE = 0x10000 - LC_START; // $C000..$FFFF+1
+				LPBYTE pBaseAddr       = memmain + LC_START; // $D000
+
+				int iPrevBank = g_uSaturnActiveBank;
 				g_uSaturnActiveBank = 0 // Saturn 128K Language Card Bank 0 .. 7
 					| (address >> 1) & 4
 					| (address >> 0) & 3
 					;
 
-				// TODO: Update paging()
+#if defined(DEBUG_LANGUAGE_CARD)
+	sprintf( text, "SATURN: Prev Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActiveBank );
+	OutputDebugStringA( text );
+#endif
+
+				memcpy( g_aSaturnPages[ iPrevBank ], pBaseAddr                            , BANK_SIZE );
+				memcpy( pBaseAddr                  , g_aSaturnPages[ g_uSaturnActiveBank ], BANK_SIZE );
 
 				goto _done_saturn;
 			}
 
-			// Fall into 16K IO switches
+			// Intentional Fall into 16K Language Card IO switches
 		}
 
 #endif // SATURN
 		{
+			SetMemMode(memmode & ~(MF_BANK2 | MF_HIGHRAM));
+
 			// Apple 16K Language Card
 			if (!(address & 8))
 				SetMemMode(memmode | MF_BANK2);
@@ -1660,6 +1687,14 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 
 			if (address & 1)	// GH#392
 			{
+#ifdef SATURN
+				if (g_uSaturnTotalBanks)
+				{
+					if ( g_bLastWriteRam ) // SATURN -- this differs then Apple's 16K LC???
+						SetMemMode(memmode | MF_WRITERAM);
+				}
+				else
+#endif // SATURN
 				if (!write && g_bLastWriteRam)
 				{
 					SetMemMode(memmode | MF_WRITERAM); // UTAIIe:5-23
@@ -1670,7 +1705,13 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				SetMemMode(memmode & ~(MF_WRITERAM)); // UTAIIe:5-23
 			}
 		}
-		g_bLastWriteRam = (address & 1) && (!write); // UTAIIe:5-23
+
+#ifdef SATURN
+		if (g_uSaturnTotalBanks)  // SATURN -- this differs then Apple's 16K LC???
+			g_bLastWriteRam = (address & 1); // SATURN
+		else
+#endif // SATURN
+			g_bLastWriteRam = (address & 1) && (!write); // UTAIIe:5-23
 	}
 	else if (!IS_APPLE2)
 	{
@@ -1697,6 +1738,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			case 0x73: // Ramworks III set aux page number
 				if ((value < g_uMaxExPages) && RWpages[value])
 				{
+					// NOTE: Do NOT set: g_eMemType = MEM_TYPE_RAMWORKS
 					g_uActiveBank = value;
 					memaux = RWpages[g_uActiveBank];
 					UpdatePaging(0);	// Initialize=0
