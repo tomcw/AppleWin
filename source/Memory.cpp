@@ -1726,9 +1726,65 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				goto _done_saturn;
 			}
 
-			// Intentional Fall into 16K Language Card IO switches
-		}
+#define SATURN_POKE 1
 
+#if SATURN_POKE == 1
+            int flags = memmode & ~MF_WRITERAM;
+
+            switch( address )
+            {
+                case 0x80: flags |= MF_HIGHRAM; flags |= MF_BANK2; break;
+                case 0x81: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
+                case 0x82: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break;
+                case 0x83: flags |= MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
+
+                case 0x88: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break;
+                case 0x89: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
+                case 0x8A: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break;
+                case 0x8B: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
+
+                default: // Handled above
+                    break;
+            }
+
+            if (address & 1)    // GH#392
+                if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC???
+                    flags |= MF_WRITERAM; // UTAIIe:5-23
+
+            SetMemMode( flags );
+			g_bLastWriteRam = (address & 1); // SATURN -- this differs from Apple's 16K LC???
+#endif // SATURN_POKE
+
+#if SATURN_POKE == 2
+			SetMemMode(memmode & ~(MF_BANK2 | MF_HIGHRAM));
+
+			// Apple 16K Language Card
+			// C080 .. C087 Bank 2
+			// C088 .. C08F Bank 1
+			if (!(address & 8))
+				SetMemMode(memmode | MF_BANK2);
+
+			// C080 == C088    Read RAM
+			// C081 == C089    Read ROM,     Write enable
+			// C082 == C08A    Read ROM,     Write protect
+			// C083 == C08B    Ream RAM
+			if (((address & 2) >> 1) == (address & 1))
+				SetMemMode(memmode | MF_HIGHRAM);
+
+			if (address & 1)	// GH#392
+			{
+				if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC???
+						SetMemMode(memmode | MF_WRITERAM);
+			}
+			else
+			{
+				SetMemMode(memmode & ~(MF_WRITERAM)); // UTAIIe:5-23
+			}
+
+			g_bLastWriteRam = (address & 1); // SATURN -- this differs from Apple's 16K LC???
+#endif // SATURN_POKE
+		}
+		else
 #endif // SATURN
 		{
 			SetMemMode(memmode & ~(MF_BANK2 | MF_HIGHRAM));
@@ -1757,10 +1813,18 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			{
 				SetMemMode(memmode & ~(MF_WRITERAM)); // UTAIIe:5-23
 			}
-		}
 
 			g_bLastWriteRam = (address & 1) && (!write); // UTAIIe:5-23
-	}
+		}
+
+#if defined(DEBUG_LANGUAGE_CARD)
+		isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
+		isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
+		isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
+		sprintf( text, "<LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC_on, isWrite );
+		OutputDebugStringA( text );
+#endif
+	} // IO $C080 .. $C08F
 	else if (!IS_APPLE2)
 	{
 		switch (address)
