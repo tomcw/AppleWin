@@ -1764,10 +1764,10 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			if (!(address & 8))
 				SetMemMode(memmode | MF_BANK2);
 
-			// C080 == C088    Read RAM
-			// C081 == C089    Read ROM,     Write enable
-			// C082 == C08A    Read ROM,     Write protect
-			// C083 == C08B    Ream RAM
+			// C080 == C088    Read RAM   MF_HIGHRAM
+			// C081 == C089    Read ROM
+			// C082 == C08A    Read ROM
+			// C083 == C08B    Read RAM   MF_HIGHRAM
 			if (((address & 2) >> 1) == (address & 1))
 				SetMemMode(memmode | MF_HIGHRAM);
 
@@ -1795,13 +1795,17 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			if (!(address & 8))
 				SetMemMode(memmode | MF_BANK2);
 
-			// C080 == C088    Read RAM
-			// C081 == C089    Read ROM,     Write enable
-			// C082 == C08A    Read ROM,     Write protect
-			// C083 == C08B    Ream RAM
+			// C080 == C088    Read RAM   MF_HIGHRAM
+			// C081 == C089    Read ROM
+			// C082 == C08A    Read ROM
+			// C083 == C08B    Read RAM   MF_HIGHRAM
 			if (((address & 2) >> 1) == (address & 1))
 				SetMemMode(memmode | MF_HIGHRAM);
 
+			// C080 == C088    Write protect
+			// C081 == C089    Write enabled
+			// C082 == C08A    Write protect
+			// C083 == C08B    Write enabled
 			if (address & 1)	// GH#392
 			{
 				if (!write && g_bLastWriteRam)
