@@ -1702,7 +1702,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				// 3000 F000 Slot #
 
 				// Bank out the old slot
-				if( iPrevBank != g_uSaturnActiveBank)
+				if (iPrevBank != g_uSaturnActiveBank)
 				{
 					modechanging = true;
 
