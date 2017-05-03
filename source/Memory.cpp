@@ -1627,27 +1627,29 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 #endif
 
 #ifdef SATURN
-/*
-		Bin   Addr.
-		      $C0N0 4K Bank A, RAM read, Write protect
-		      $C0N1 4K Bank A, ROM read, Write enabled
-		      $C0N2 4K Bank A, ROM read, Write protect
-		      $C0N3 4K Bank A, RAM read, Write enabled
-		0100  $C0N4 select 16K Bank 1
-		0101  $C0N5 select 16K Bank 2
-		0110  $C0N6 select 16K Bank 3
-		0111  $C0N7 select 16K Bank 4
-		      $C0N8 4K Bank B, RAM read, Write protect
-		      $C0N9 4K Bank B, ROM read, Write enabled
-		      $C0NA 4K Bank B, ROM read, Write protect
-		      $C0NB 4K Bank B, RAM read, Write enabled
-		1100  $C0NC select 16K Bank 5
-		1101  $C0ND select 16K Bank 6
-		1110  $C0NE select 16K Bank 7
-		1111  $C0NF select 16K Bank 8
-*/
 		if (g_uSaturnTotalBanks)
 		{
+			/*
+					Bin   Addr.
+						  $C0N0 4K Bank A, RAM read, Write protect
+						  $C0N1 4K Bank A, ROM read, Write enabled
+						  $C0N2 4K Bank A, ROM read, Write protect
+						  $C0N3 4K Bank A, RAM read, Write enabled
+					0100  $C0N4 select 16K Bank 1
+					0101  $C0N5 select 16K Bank 2
+					0110  $C0N6 select 16K Bank 3
+					0111  $C0N7 select 16K Bank 4
+						  $C0N8 4K Bank B, RAM read, Write protect
+						  $C0N9 4K Bank B, ROM read, Write enabled
+						  $C0NA 4K Bank B, ROM read, Write protect
+						  $C0NB 4K Bank B, RAM read, Write enabled
+					1100  $C0NC select 16K Bank 5
+					1101  $C0ND select 16K Bank 6
+					1110  $C0NE select 16K Bank 7
+					1111  $C0NF select 16K Bank 8
+					^ ^^
+					3210 Bits
+			*/
 			if ((address & 7) > 3)
 			{
 				int iBankOffset = (SW_BANK2 ? 0 : 0x1000);
