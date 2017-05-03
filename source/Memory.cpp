@@ -1711,8 +1711,15 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				}
 
 				// Bank in the new slot
-				memcpy( mem     + 0xD000, pSatAddr + iBankOffset, 0x1000 );
-				memcpy( mem     + 0xE000, pSatAddr + 0x2000     , 0x2000 ); // mem  <- LC slot # new
+				if ( SW_HIGHRAM )
+				{
+					memcpy( mem     + 0xD000, pSatAddr + iBankOffset, 0x1000 );
+					memcpy( mem     + 0xE000, pSatAddr + 0x2000     , 0x2000 ); // mem  <- LC slot # new
+				}
+				else
+				{
+					memcpy( mem     + 0xD000, memrom                , 0x3000 );
+				}
 
 				// NOTE: Do NOT mark memdirty
 
