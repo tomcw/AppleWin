@@ -1692,12 +1692,12 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 
 */
 #if defined(DEBUG_LANGUAGE_CARD)
-	sprintf( text, "SATURN: Prev Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActiveBank );
-	OutputDebugStringA( text );
-	BYTE prevByte = *(mem + 0xE000);
-	BYTE nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x2000);
-	sprintf( text, "$E000: %02X <- SATURN: %02X\n", prevByte, nextByte );
-	OutputDebugStringA( text );
+				sprintf( text, "SATURN:  Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActiveBank );
+				OutputDebugStringA( text );
+				BYTE prevByte = *(mem + 0xE000);
+				BYTE nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x2000);
+				sprintf( text, "$E000: %02X <- SATURN: %02X\n", prevByte, nextByte );
+				OutputDebugStringA( text );
 #endif
 
 				// Sat  Mem
