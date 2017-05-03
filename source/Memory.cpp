@@ -1618,12 +1618,12 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 	if ((address >= 0x80) && (address <= 0x8F))
 	{
 #if defined(DEBUG_LANGUAGE_CARD)
-	static char text[ 128 ];
-	int isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
-	int isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
-	int isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
-	sprintf( text, "LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC_on, isWrite );
-	OutputDebugStringA( text );
+		static char text[ 128 ];
+		int isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
+		int isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
+		int isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
+		sprintf( text, ">LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC_on, isWrite );
+		OutputDebugStringA( text );
 #endif
 
 #ifdef SATURN
