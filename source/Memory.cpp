@@ -57,7 +57,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Debugger\DebugDefs.h"
 #include "YamlHelper.h"
 
-#define DEBUG_LANGUAGE_CARD
+#define DEBUG_LANGUAGE_CARD 1
 
 #define  SW_80STORE    (memmode & MF_80STORE)
 #define  SW_ALTZP      (memmode & MF_ALTZP)
