@@ -1748,14 +1748,6 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 
 			if (address & 1)	// GH#392
 			{
-#if defined(SATURN)
-				if (g_uSaturnTotalBanks)
-				{
-					if ( g_bLastWriteRam ) // SATURN -- this differs then Apple's 16K LC???
-						SetMemMode(memmode | MF_WRITERAM);
-				}
-				else
-#endif // SATURN
 				if (!write && g_bLastWriteRam)
 				{
 					SetMemMode(memmode | MF_WRITERAM); // UTAIIe:5-23
@@ -1767,11 +1759,6 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			}
 		}
 
-#if defined(SATURN)
-		if (g_uSaturnTotalBanks)  // SATURN -- this differs then Apple's 16K LC???
-			g_bLastWriteRam = (address & 1); // SATURN
-		else
-#endif // SATURN
 			g_bLastWriteRam = (address & 1) && (!write); // UTAIIe:5-23
 	}
 	else if (!IS_APPLE2)
