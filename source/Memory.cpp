@@ -1718,7 +1718,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				}
 				else
 				{
-					memcpy( mem     + 0xD000, memrom                , 0x3000 );
+					memcpy( mem     + 0xD000, memrom                , 0x3000 ); // TODO: This is probably a HACK -- setup memshadow?
 				}
 
 				// NOTE: Do NOT mark memdirty
