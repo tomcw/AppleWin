@@ -1653,13 +1653,6 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			if ((address & 7) > 3)
 			{
 				int iBankOffset = (SW_BANK2 ? 0 : 0x1000);
-				LPBYTE pMemAddr = SW_WRITERAM
-					?	SW_HIGHRAM
-						? mem
-						: memmain
-					: mem
-					;
-
 				int iPrevBank = g_uSaturnActiveBank;
 				g_uSaturnActiveBank = 0 // Saturn 128K Language Card Bank 0 .. 7
 					| (address >> 1) & 4
