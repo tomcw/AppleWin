@@ -823,6 +823,9 @@ void MemResetPaging()
 
 static void ResetPaging(BOOL initialize)
 {
+#ifdef SATURN
+	// TODO: Reset back to bank 0 ?
+#endif
 	g_bLastWriteRam = 0;
 	SetMemMode(MF_BANK2 | MF_SLOTCXROM | MF_WRITERAM);
 	UpdatePaging(initialize);
