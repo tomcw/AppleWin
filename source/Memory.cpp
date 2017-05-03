@@ -1724,7 +1724,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				// NOTE: Do NOT mark memdirty
 
 				goto _done_saturn;
-			}
+			} // C084..C087  C08C..C08F
 
 #define SATURN_POKE 1
 
