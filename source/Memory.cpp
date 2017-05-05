@@ -1777,9 +1777,9 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				int iBankOffsetNext = (SW_BANK2 ? 0 : 0x1000);
 
 #if defined(DEBUG_LANGUAGE_CARD)
-		sprintf( text, "*** LC: Prev Bank: %d\n", bank2 & MF_BANK2 ? 1 : 0 );
+		sprintf( text, "        *** LC: Prev Bank: %c\n", 'B' - (bank2 & MF_BANK2 ? 1 : 0) );
 		OutputDebugStringA( text );
-		sprintf( text, "*** LC: Next Bank: %d\n", flags & MF_BANK2 ? 1 : 0 );
+		sprintf( text, "        *** LC: Next Bank: %c\n", 'B' - (flags & MF_BANK2 ? 1 : 0) );
 		OutputDebugStringA( text );
 #endif
 //				memcpy(               g_aSaturnPages[ g_uSaturnActiveBank ] + iBankOffsetPrev, mem + 0xD000, 0x1000 ); // Save prev bank
