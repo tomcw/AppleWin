@@ -1722,8 +1722,8 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 #endif
 
 				// Sat  Mem
-				// 0000 D000 Slot # Bank A
-				// 1000 D000 Slot # Bank B
+				// 0000 D000 Slot # Bank A = Bank 2
+				// 1000 D000 Slot # Bank B = Bank 1
 				// 2000 E000 Slot #
 				// 3000 F000 Slot #
 
