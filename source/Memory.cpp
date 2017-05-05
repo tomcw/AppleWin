@@ -1687,11 +1687,24 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 
 */
 #if defined(DEBUG_LANGUAGE_CARD)
-				sprintf( text, "SATURN:  Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActiveBank );
+				BYTE prevByte, nextByte;
+
+				sprintf( text, "        SATURN:  Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActiveBank );
 				OutputDebugStringA( text );
-				BYTE prevByte = *(mem + 0xE000);
-				BYTE nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x2000);
-				sprintf( text, "$E000: %02X <- SATURN: %02X\n", prevByte, nextByte );
+
+				prevByte = *(mem + 0xD000);
+				nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x0000);
+				sprintf( text, "        SATURN: $C000: %02X <- SATURN: %02X\n", prevByte, nextByte );
+				OutputDebugStringA( text );
+
+				prevByte = *(mem + 0xD000);
+				nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x1000);
+				sprintf( text, "        SATURN: $D000: %02X <- SATURN: %02X\n", prevByte, nextByte );
+				OutputDebugStringA( text );
+
+				prevByte = *(mem + 0xE000);
+				nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x2000);
+				sprintf( text, "        SATURN: $E000: %02X <- SATURN: %02X\n", prevByte, nextByte );
 				OutputDebugStringA( text );
 #endif
 
