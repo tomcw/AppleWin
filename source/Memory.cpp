@@ -1788,29 +1788,29 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 #endif
 
 #if SATURN_POKE == 1
-            int flags = memmode & ~MF_WRITERAM;
+			int flags = memmode & ~MF_WRITERAM;
 
-            switch( address )
-            {
-                case 0x80: flags |= MF_HIGHRAM; flags |= MF_BANK2; break;
-                case 0x81: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
-                case 0x82: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break;
-                case 0x83: flags |= MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
+			switch( address )
+			{
+				case 0x80: flags |= MF_HIGHRAM; flags |= MF_BANK2; break;
+				case 0x81: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
+				case 0x82: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break;
+				case 0x83: flags |= MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
 
-                case 0x88: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break;
-                case 0x89: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
-                case 0x8A: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break;
-                case 0x8B: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
+				case 0x88: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break;
+				case 0x89: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
+				case 0x8A: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break;
+				case 0x8B: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
 
-                default: // Handled above
-                    break;
-            }
+				default: // Handled above
+					break;
+			}
 
-            if (address & 1)    // GH#392
-                if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC???
-                    flags |= MF_WRITERAM; // UTAIIe:5-23
+			if (address & 1)    // GH#392
+				if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC???
+					flags |= MF_WRITERAM; // UTAIIe:5-23
 
-            SetMemMode( flags );
+			SetMemMode( flags );
 			g_bLastWriteRam = (address & 1); // SATURN -- this differs from Apple's 16K LC???
 #endif // SATURN_POKE
 
