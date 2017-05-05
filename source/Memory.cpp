@@ -1862,9 +1862,9 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				SetMemMode(memmode | MF_HIGHRAM);
 
 			// C080 == C088    Write protect
-			// C081 == C089    Write enabled
+			// C081 == C089    Write enabled  MF_WRITERAM
 			// C082 == C08A    Write protect
-			// C083 == C08B    Write enabled
+			// C083 == C08B    Write enabled  MF_WRITERAM
 			if (address & 1)	// GH#392
 			{
 				if (!write && g_bLastWriteRam)
