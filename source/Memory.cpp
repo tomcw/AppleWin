@@ -1610,6 +1610,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 {
 	address &= 0xFF;
 	DWORD lastmemmode = memmode;
+
 #if defined(_DEBUG) && defined(DEBUG_FLIP_TIMINGS)
 	DebugFlip(address, nCyclesLeft);
 #endif
