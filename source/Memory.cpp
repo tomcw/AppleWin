@@ -1739,7 +1739,41 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				goto _done_saturn;
 			} // C084..C087  C08C..C08F
 
-#define SATURN_POKE 1
+#define SATURN_POKE 0
+
+#if SATURN_POKE == 0
+			int bank2 = memmode &   MF_BANK2; // prev flags
+			int flags = memmode & ~(MF_BANK2 | MF_HIGHRAM | MF_WRITERAM); // next flags
+
+			if ((address & 3) == 0) flags |= MF_HIGHRAM;
+			if ((address & 3) == 3) flags |= MF_HIGHRAM;
+			if ((address &15) <  8) flags |= MF_BANK2;
+
+			if (address & 1)    // GH#392
+				if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC???
+					flags |= MF_WRITERAM; // UTAIIe:5-23
+
+			g_bLastWriteRam = (address & 1); // SATURN -- this differs from Apple's 16K LC???
+
+			SetMemMode( flags );
+			
+			// Did banks change?
+			if (MF_HIGHRAM
+			&& (bank2 != (flags & MF_BANK2)))
+			{
+				int iBankOffsetPrev = (bank2    ? 0 : 0x1000);
+				int iBankOffsetNext = (SW_BANK2 ? 0 : 0x1000);
+
+#if defined(DEBUG_LANGUAGE_CARD)
+		sprintf( text, "*** LC: Prev Bank: %d\n", bank2 & MF_BANK2 ? 1 : 0 );
+		OutputDebugStringA( text );
+		sprintf( text, "*** LC: Next Bank: %d\n", flags & MF_BANK2 ? 1 : 0 );
+		OutputDebugStringA( text );
+#endif
+//				memcpy(               g_aSaturnPages[ g_uSaturnActiveBank ] + iBankOffsetPrev, mem + 0xD000, 0x1000 ); // Save prev bank
+//				memcpy( mem + 0xD000, g_aSaturnPages[ g_uSaturnActiveBank ] + iBankOffsetNext,               0x1000 ); // Load next bank
+			}
+#endif
 
 #if SATURN_POKE == 1
             int flags = memmode & ~MF_WRITERAM;
