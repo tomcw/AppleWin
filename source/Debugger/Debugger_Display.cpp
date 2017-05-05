@@ -2837,7 +2837,7 @@ void _DrawSoftSwitchLanguageCardBank( RECT & rect, int iBank, int bg_default = B
 		if (g_eMemType == MEM_TYPE_RAMWORKS) { sText[0] = 'r'; iActiveBank = g_uActiveBank; } // RAMWORKS
 #endif
 #ifdef SATURN
-		if (g_eMemType == MEM_TYPE_SATURN  ) { sText[0] = 's'; iActiveBank = g_uSaturnActiveBank; } // SATURN 64K 128K
+		if (g_eMemType == MEM_TYPE_SATURN  ) { sText[0] = 's'; iActiveBank = g_uSaturnActivePage; } // SATURN 64K 128K
 #endif // SATURN
 
 		if (iActiveBank >= 0)

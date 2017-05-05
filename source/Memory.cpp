@@ -193,7 +193,7 @@ static LPBYTE	RWpages[kMaxExMemoryBanks];		// pointers to RW memory banks
 
 #ifdef SATURN
 UINT			g_uSaturnTotalBanks = 0;		// Will be > 0 if Saturn card is "installed"
-UINT			g_uSaturnActiveBank = 0;		// Saturn 128K Language Card Bank 0 .. 7
+UINT			g_uSaturnActivePage = 0;		// Saturn 128K Language Card Bank 0 .. 7
 static LPBYTE	g_aSaturnPages[8];
 #endif // SATURN
 
@@ -1653,12 +1653,12 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 			if ((address & 7) > 3)
 			{
 				int iBankOffset = (SW_BANK2 ? 0 : 0x1000);
-				int iPrevBank = g_uSaturnActiveBank;
-				g_uSaturnActiveBank = 0 // Saturn 128K Language Card Bank 0 .. 7
+				int iPrevBank = g_uSaturnActivePage;
+				g_uSaturnActivePage = 0 // Saturn 128K Language Card Bank 0 .. 7
 					| (address >> 1) & 4
 					| (address >> 0) & 3
 					;
-				LPBYTE pSatAddr = g_aSaturnPages[ g_uSaturnActiveBank ];
+				LPBYTE pSatAddr = g_aSaturnPages[ g_uSaturnActivePage ];
 
 /*
 === REPRO ===
@@ -1689,7 +1689,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 #if defined(DEBUG_LANGUAGE_CARD)
 				BYTE prevByte, thisByte, nextByte;
 
-				sprintf( text, "        SATURN:  Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActiveBank );
+				sprintf( text, "        SATURN:  Bank: %04X -> %04X\n", iPrevBank, g_uSaturnActivePage );
 				OutputDebugStringA( text );
 
 				prevByte = *(g_aSaturnPages[ 0 ] + 0x0000); // D000 Bank A
@@ -1705,17 +1705,17 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				OutputDebugStringA( text );
 
 				prevByte = *(mem + 0xD000);
-				nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x0000);
+				nextByte = *(g_aSaturnPages[ g_uSaturnActivePage ] + 0x0000);
 				sprintf( text, "        SATURN: $C000: %02X <- SATURN: %02X\n", prevByte, nextByte );
 				OutputDebugStringA( text );
 
 				prevByte = *(mem + 0xD000);
-				nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x1000);
+				nextByte = *(g_aSaturnPages[ g_uSaturnActivePage ] + 0x1000);
 				sprintf( text, "        SATURN: $D000: %02X <- SATURN: %02X\n", prevByte, nextByte );
 				OutputDebugStringA( text );
 
 				prevByte = *(mem + 0xE000);
-				nextByte = *(g_aSaturnPages[ g_uSaturnActiveBank ] + 0x2000);
+				nextByte = *(g_aSaturnPages[ g_uSaturnActivePage ] + 0x2000);
 				sprintf( text, "        SATURN: $E000: %02X <- SATURN: %02X\n", prevByte, nextByte );
 				OutputDebugStringA( text );
 #endif
@@ -1727,7 +1727,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				// 3000 F000 Slot #
 
 				// Bank out the old slot
-				if (iPrevBank != g_uSaturnActiveBank)
+//				if (iPrevBank != g_uSaturnActivePage)
 				{
 					modechanging = true;
 
@@ -1782,8 +1782,8 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 		sprintf( text, "        *** LC: Next Bank: %c\n", 'B' - (flags & MF_BANK2 ? 1 : 0) );
 		OutputDebugStringA( text );
 #endif
-//				memcpy(               g_aSaturnPages[ g_uSaturnActiveBank ] + iBankOffsetPrev, mem + 0xD000, 0x1000 ); // Save prev bank
-//				memcpy( mem + 0xD000, g_aSaturnPages[ g_uSaturnActiveBank ] + iBankOffsetNext,               0x1000 ); // Load next bank
+				memcpy(               g_aSaturnPages[ g_uSaturnActivePage ] + iBankOffsetPrev, mem + 0xD000, 0x1000 ); // Save prev bank
+				memcpy( mem + 0xD000, g_aSaturnPages[ g_uSaturnActivePage ] + iBankOffsetNext,               0x1000 ); // Load next bank
 			}
 #endif
 

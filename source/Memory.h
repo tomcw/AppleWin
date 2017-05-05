@@ -63,7 +63,7 @@ extern UINT       g_uActiveBank;
 
 #ifdef SATURN
 extern UINT g_uSaturnTotalBanks;
-extern UINT g_uSaturnActiveBank;		// Saturn 128K Language Card Bank 0 .. 7
+extern UINT g_uSaturnActivePage;		// Saturn 128K Language Card Bank 0 .. 7
 #endif // SATURN
 
 void	RegisterIoHandler(UINT uSlot, iofunction IOReadC0, iofunction IOWriteC0, iofunction IOReadCx, iofunction IOWriteCx, LPVOID lpSlotParameter, BYTE* pExpansionRom);
