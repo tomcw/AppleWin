@@ -57,7 +57,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Debugger\DebugDefs.h"
 #include "YamlHelper.h"
 
-#define DEBUG_LANGUAGE_CARD 1
+//#define DEBUG_LANGUAGE_CARD 1
 
 #define  SW_80STORE    (memmode & MF_80STORE)
 #define  SW_ALTZP      (memmode & MF_ALTZP)
@@ -1661,32 +1661,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 					| (address >> 0) & 3
 					;
 				pSaturnMem = g_aSaturnPages[ g_uSaturnActivePage ];
-/*
-=== REPRO ===
-300:AD 84 C0
-303:AD 81 C0
-306:AD 81 C0
-309:A2 D0
-30B:86 FF
-30D:A0 00
-30F:84 FE
-311:B1 FE
-313:91 FE
-315:C8
-316:D0 F9
-318:E8
-319:D0 F2
-31B:AD 83 C0
-31E:AD 83 C0
-321:60
 
-=== WATCH ===
-*(memmain + 0xE000),x
-*((g_aSaturnPages[0]) + 0xE000 - 0xC000),x
-*((g_aSaturnPages[1]) + 0xE000 - 0xC000),x
-
-
-*/
 #if defined(DEBUG_LANGUAGE_CARD)
 				BYTE prevByte, thisByte, nextByte;
 
@@ -1755,9 +1730,6 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				goto _done_saturn;
 			} // C084..C087  C08C..C08F
 
-#define SATURN_POKE 0
-
-#if SATURN_POKE == 0
 			int nextmemmode = memmode & ~(MF_BANK2 | MF_HIGHRAM | MF_WRITERAM);
 
 			if ((address & 3) == 0) nextmemmode |= MF_HIGHRAM;
@@ -1791,63 +1763,6 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				memcpy( memmain + 0xC000, pSaturnMem + 0x1000                       , 0x1000 ); // Update memshadow <- memmain
 				memcpy( memmain + 0xD000, pSaturnMem + 0x0000                       , 0x1000 );
 			}
-#endif
-
-#if SATURN_POKE == 1
-			int flags = memmode & ~MF_WRITERAM;
-
-			switch( address )
-			{
-				case 0x80: flags |= MF_HIGHRAM; flags |= MF_BANK2; break;
-				case 0x81: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
-				case 0x82: flags &=~MF_HIGHRAM; flags |= MF_BANK2; break;
-				case 0x83: flags |= MF_HIGHRAM; flags |= MF_BANK2; break; // 2 access to enable MF_WRITERAM
-
-				case 0x88: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break;
-				case 0x89: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
-				case 0x8A: flags &=~MF_HIGHRAM; flags &=~MF_BANK2; break;
-				case 0x8B: flags |= MF_HIGHRAM; flags &=~MF_BANK2; break; // 2 access to enable MF_WRITERAM
-
-				default: // Handled above
-					break;
-			}
-
-			if (address & 1)    // GH#392
-				if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC???
-					flags |= MF_WRITERAM; // UTAIIe:5-23
-
-			SetMemMode( flags );
-			g_bLastWriteRam = (address & 1); // SATURN -- this differs from Apple's 16K LC???
-#endif // SATURN_POKE
-
-#if SATURN_POKE == 2
-			SetMemMode(memmode & ~(MF_BANK2 | MF_HIGHRAM));
-
-			// Apple 16K Language Card
-			// C080 .. C087 Bank 2
-			// C088 .. C08F Bank 1
-			if (!(address & 8))
-				SetMemMode(memmode | MF_BANK2);
-
-			// C080 == C088    Read RAM   MF_HIGHRAM
-			// C081 == C089    Read ROM
-			// C082 == C08A    Read ROM
-			// C083 == C08B    Read RAM   MF_HIGHRAM
-			if (((address & 2) >> 1) == (address & 1))
-				SetMemMode(memmode | MF_HIGHRAM);
-
-			if (address & 1)	// GH#392
-			{
-				if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC???
-						SetMemMode(memmode | MF_WRITERAM);
-			}
-			else
-			{
-				SetMemMode(memmode & ~(MF_WRITERAM)); // UTAIIe:5-23
-			}
-
-			g_bLastWriteRam = (address & 1); // SATURN -- this differs from Apple's 16K LC???
-#endif // SATURN_POKE
 		}
 		else
 #endif // SATURN
@@ -1891,7 +1806,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 		isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
 		isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
 		sprintf( text, "        <LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC_on, isWrite );
-		//OutputDebugStringA( text );
+		OutputDebugStringA( text );
 #endif
 	} // IO $C080 .. $C08F
 	else if (!IS_APPLE2)
