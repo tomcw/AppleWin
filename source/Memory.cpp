@@ -905,7 +905,11 @@ static void UpdatePaging(BOOL initialize)
 
 		memwrite[loop]  = SW_WRITERAM	? SW_HIGHRAM	? mem+(loop << 8)
 														: SW_ALTZP	? memaux+(loop << 8)-bankoffset
-																	: memmain+(loop << 8)-bankoffset
+#ifdef SATURN
+																	: g_uSaturnTotalBanks
+																		? g_aSaturnPages[ g_uSaturnActivePage ] + ((loop - 0xD0) << 8) + bankoffset
+#endif // SATURN
+																		: memmain+(loop << 8)-bankoffset
 										: NULL;
 	}
 
