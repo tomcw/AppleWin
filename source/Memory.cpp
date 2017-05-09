@@ -891,7 +891,16 @@ static void UpdatePaging(BOOL initialize)
 	{
 		int bankoffset = (SW_BANK2 ? 0 : 0x1000);
 		memshadow[loop] = SW_HIGHRAM ? SW_ALTZP	? memaux+(loop << 8)-bankoffset
-												: memmain+(loop << 8)-bankoffset
+#ifdef SATURN
+												: g_uSaturnTotalBanks
+													// Sat  Mem
+													// 0000 D000 Slot # Bank A = Bank 2
+													// 1000 D000 Slot # Bank B = Bank 1
+													// 2000 E000 Slot #
+													// 3000 F000 Slot #
+													? g_aSaturnPages[ g_uSaturnActivePage ] + ((loop - 0xD0) << 8) + bankoffset
+#endif // SATURN
+													: memmain+(loop << 8)-bankoffset
 									: memrom+((loop-0xD0) * 0x100);
 
 		memwrite[loop]  = SW_WRITERAM	? SW_HIGHRAM	? mem+(loop << 8)
@@ -903,7 +912,16 @@ static void UpdatePaging(BOOL initialize)
 	for (loop = 0xE0; loop < 0x100; loop++)
 	{
 		memshadow[loop] = SW_HIGHRAM	? SW_ALTZP	? memaux+(loop << 8)
-													: memmain+(loop << 8)
+#ifdef SATURN
+													: g_uSaturnTotalBanks
+														// Sat  Mem
+														// 0000 D000 Slot # Bank A = Bank 2
+														// 1000 D000 Slot # Bank B = Bank 1
+														// 2000 E000 Slot #
+														// 3000 F000 Slot #
+														? g_aSaturnPages[ g_uSaturnActivePage ] + ((loop - 0xC0) << 8)
+#endif // SATURN
+														: memmain+(loop << 8)
 										: memrom+((loop-0xD0) * 0x100);
 
 		memwrite[loop]  = SW_WRITERAM	? SW_HIGHRAM	? mem+(loop << 8)
@@ -1696,72 +1714,50 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				OutputDebugStringA( text );
 #endif
 
+				modechanging = true;
+
+				// Bank out the old memory
 				// Sat  Mem
 				// 0000 D000 Slot # Bank A = Bank 2
 				// 1000 D000 Slot # Bank B = Bank 1
 				// 2000 E000 Slot #
 				// 3000 F000 Slot #
-
-				// Bank out the old memory
 				memcpy( g_aSaturnPages[iPrevPage] + iBankOffset, mem + 0xD000, 0x1000 );
 				memcpy( g_aSaturnPages[iPrevPage] + 0x2000     , mem + 0xE000, 0x2000 ); // RAM  -> LC slot # old
 
 				// Bank in the new memory
-				if ( SW_HIGHRAM )
-				{
-					memcpy( mem     + 0xD000, pSaturnMem + iBankOffset, 0x1000 );
-					memcpy( mem     + 0xE000, pSaturnMem + 0x2000     , 0x2000 ); // RAM <- LC slot # new
+				// NOTE: memcpy done in UpdatePaging()
 
-					// Update memshadow <- memmain for UpdatePaging()
-					//     int bankoffset = (SW_BANK2 ? 0 : 0x1000);
-					//	   memshadow[ iPage ] = SW_HIGHRAM ? SW_ALTZP	? memaux +(iPage << 8)-bankoffset
-					//                                                  : memmain+(iPage << 8)-bankoffset
-					//     CopyMemory(mem+(loop << 8),memshadow[loop],256);
-					memcpy( memmain + 0xC000, pSaturnMem + 0x1000, 0x1000 );
-					memcpy( memmain + 0xD000, pSaturnMem + 0x0000, 0x1000 );
-				}
-				else
-				{
-					memcpy( mem     + 0xD000, memrom                , 0x3000 ); // TODO: This is probably a HACK -- setup memshadow?
-				}
-
-				// NOTE: Do NOT mark memdirty
-
-				goto _done_saturn;
 			} // C084..C087  C08C..C08F
-
-			int nextmemmode = memmode & ~(MF_BANK2 | MF_HIGHRAM | MF_WRITERAM);
-
-			if ((address & 3) == 0) nextmemmode |= MF_HIGHRAM;
-			if ((address & 3) == 3) nextmemmode |= MF_HIGHRAM;
-			if ((address &15) <  8) nextmemmode |= MF_BANK2;
-
-			if (address & 1)    // GH#392
-				if ( g_bLastWriteRam ) // SATURN -- this differs from Apple's 16K LC??? no !write
-					nextmemmode |= MF_WRITERAM; // UTAIIe:5-23
-
-			g_bLastWriteRam = (address & 1); // SATURN -- this differs from Apple's 16K LC??? no !write
-
-			SetMemMode( nextmemmode );
-			
-			// Did banks change?
-			if (MF_HIGHRAM && ((lastmemmode & MF_BANK2) != (nextmemmode & MF_BANK2)))
+			else
 			{
+				int nextmemmode = memmode & ~(MF_BANK2 | MF_HIGHRAM | MF_WRITERAM);
+
+				if ((address & 3) == 0) nextmemmode |= MF_HIGHRAM;
+				if ((address & 3) == 3) nextmemmode |= MF_HIGHRAM;
+				if ((address &15) <  8) nextmemmode |= MF_BANK2;
+
+				if (address & 1)    // GH#392
+					if ( g_bLastWriteRam ) // GH #408 SATURN -- this differs from Apple's 16K LC??? no !write
+						nextmemmode |= MF_WRITERAM; // UTAIIe:5-23
+
+				g_bLastWriteRam = (address & 1); // GH #408 SATURN -- this differs from Apple's 16K LC??? no !write
+
+				SetMemMode( nextmemmode );
+			
+				modechanging = true;
+
 #if defined(DEBUG_LANGUAGE_CARD)
-		sprintf( text, "        *** LC: Prev Bank: %c\n", 'B' - ((lastmemmode & MF_BANK2) ? 1 : 0) );
-		OutputDebugStringA( text );
-		sprintf( text, "        *** LC: Next Bank: %c\n", 'B' - ((nextmemmode & MF_BANK2) ? 1 : 0) );
-		OutputDebugStringA( text );
+				// Did banks change?
+				if (MF_HIGHRAM && ((lastmemmode & MF_BANK2) != (nextmemmode & MF_BANK2)))
+				{
+					sprintf( text, "        *** LC: Prev Bank: %c\n", 'B' - ((lastmemmode & MF_BANK2) ? 1 : 0) );
+					OutputDebugStringA( text );
+
+					sprintf( text, "        *** LC: Next Bank: %c\n", 'B' - ((nextmemmode & MF_BANK2) ? 1 : 0) );
+					OutputDebugStringA( text );
+				}
 #endif
-
-				int iBankOffsetPrev = (lastmemmode & MF_BANK2) ? 0 : 0x1000;
-				int iBankOffsetNext = (nextmemmode & MF_BANK2) ? 0 : 0x1000;
-
-				memcpy(                   pSaturnMem + iBankOffsetPrev, mem + 0xD000, 0x1000 ); // Save prev bank
-				memcpy( mem     + 0xD000, pSaturnMem + iBankOffsetNext,               0x1000 ); // Load next bank
-
-				memcpy( memmain + 0xC000, pSaturnMem + 0x1000                       , 0x1000 ); // Update memshadow <- memmain
-				memcpy( memmain + 0xD000, pSaturnMem + 0x0000                       , 0x1000 );
 			}
 		}
 		else
