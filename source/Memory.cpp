@@ -1810,7 +1810,7 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 		isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
 		isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
 		isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
-		sprintf( text, "        <LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", 0xC000 | address, isBank2, isLC_on, isWrite );
+		sprintf( text, "        @$%04X: <LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", regs.pc-3, 0xC000 | address, isBank2, isLC_on, isWrite );
 		OutputDebugStringA( text );
 #endif
 	} // IO $C080 .. $C08F
