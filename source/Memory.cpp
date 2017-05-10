@@ -893,11 +893,11 @@ static void UpdatePaging(BOOL initialize)
 		memshadow[loop] = SW_HIGHRAM ? SW_ALTZP	? memaux+(loop << 8)-bankoffset
 #ifdef SATURN
 												: g_uSaturnTotalBanks
-													// Sat  Mem
-													// 0000 D000 Slot # Bank A = Bank 2
-													// 1000 D000 Slot # Bank B = Bank 1
-													// 2000 E000 Slot #
-													// 3000 F000 Slot #
+													// Sat.  Mem.          Saturn     L.C.
+													// 0000  D000  Slot N  Bank A  =  Bank 2
+													// 1000  D000  Slot N  Bank B  =  Bank 1
+													// 2000  E000  Slot N
+													// 3000  F000  Slot N
 													? g_aSaturnPages[ g_uSaturnActivePage ] + ((loop - 0xD0) << 8) + bankoffset
 #endif // SATURN
 													: memmain+(loop << 8)-bankoffset
@@ -906,6 +906,11 @@ static void UpdatePaging(BOOL initialize)
 		memwrite[loop]  = SW_WRITERAM	? SW_HIGHRAM	? mem+(loop << 8)
 														: SW_ALTZP	? memaux+(loop << 8)-bankoffset
 #ifdef SATURN
+																	// Sat.  Mem.          Saturn     L.C.
+																	// 0000  D000  Slot N  Bank A  =  Bank 2
+																	// 1000  D000  Slot N  Bank B  =  Bank 1
+																	// 2000  E000  Slot N
+																	// 3000  F000  Slot N
 																	: g_uSaturnTotalBanks
 																		? g_aSaturnPages[ g_uSaturnActivePage ] + ((loop - 0xD0) << 8) + bankoffset
 #endif // SATURN
@@ -918,11 +923,11 @@ static void UpdatePaging(BOOL initialize)
 		memshadow[loop] = SW_HIGHRAM	? SW_ALTZP	? memaux+(loop << 8)
 #ifdef SATURN
 													: g_uSaturnTotalBanks
-														// Sat  Mem
-														// 0000 D000 Slot # Bank A = Bank 2
-														// 1000 D000 Slot # Bank B = Bank 1
-														// 2000 E000 Slot #
-														// 3000 F000 Slot #
+														// Sat.  Mem.          Saturn     L.C.
+														// 0000  D000  Slot N  Bank A  =  Bank 2
+														// 1000  D000  Slot N  Bank B  =  Bank 1
+														// 2000  E000  Slot N
+														// 3000  F000  Slot N
 														? g_aSaturnPages[ g_uSaturnActivePage ] + ((loop - 0xC0) << 8)
 #endif // SATURN
 														: memmain+(loop << 8)
