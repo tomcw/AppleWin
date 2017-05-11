@@ -1803,9 +1803,33 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 		isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
 		isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
 		isWrite = (memmode & MF_WRITERAM) ? 1 : 0;
-		sprintf( text, "        @$%04X: <LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d\n", regs.pc-3, 0xC000 | address, isBank2, isLC_on, isWrite );
+		sprintf( text, "        @$%04X: <LC: $%04X  Bank2:%d  isLC: %d  isWrite:%d   ", regs.pc-3, 0xC000 | address, isBank2, isLC_on, isWrite );
 		OutputDebugStringA( text );
+
+#if 0 // DEBUG_E000
+		int   debugAddr  = 0xE000;
+		char *debugDesc  = "LangCard";
+		int   debugBank  = (memmode & MF_BANK2   ) ? 2 : 1;
+
+#ifdef SATURN
+		if( g_uSaturnTotalBanks )
+		{
+			nextByte   = *(g_aSaturnPages[ g_uSaturnActivePage ] + debugAddr - 0xC000);
+			debugDesc  = "SATURN__";
+			debugBank  = g_uSaturnActivePage;
+		}
+		else
 #endif
+			nextByte = SW_HIGHRAM
+				? memmain[ debugAddr ]
+				: memrom [ debugAddr - 0xD000 ]
+				;
+
+		sprintf( text, "%s[%d]: $%04X: %02X <- %02X", debugDesc, debugBank, debugAddr, prevByte, nextByte );
+		OutputDebugStringA( text );
+#endif // DEBUG_E000
+		OutputDebugStringA( "\n" );
+#endif // DEBUG_LANGUAGE_CARD
 	} // IO $C080 .. $C08F
 	else if (!IS_APPLE2)
 	{
