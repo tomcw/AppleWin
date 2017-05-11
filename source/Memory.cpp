@@ -1646,6 +1646,8 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 	if ((address >= 0x80) && (address <= 0x8F))
 	{
 #if defined(DEBUG_LANGUAGE_CARD)
+		BYTE prevByte, thisByte, nextByte;
+
 		static char text[ 128 ];
 		int isBank2 = (memmode & MF_BANK2   ) ? 1 : 0;
 		int isLC_on = (memmode & MF_HIGHRAM ) ? 1 : 0;
@@ -1690,8 +1692,6 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				pSaturnMem = g_aSaturnPages[ g_uSaturnActivePage ];
 
 #if defined(DEBUG_LANGUAGE_CARD)
-				BYTE prevByte, thisByte, nextByte;
-
 				sprintf( text, "        SATURN:  Page: %04X -> %04X\n", iPrevPage, g_uSaturnActivePage );
 				OutputDebugStringA( text );
 
