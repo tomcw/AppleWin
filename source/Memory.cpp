@@ -1723,19 +1723,12 @@ BYTE __stdcall MemSetPaging(WORD programcounter, WORD address, BYTE write, BYTE 
 				OutputDebugStringA( text );
 #endif
 
-				modechanging = true;
-
 				// Bank out the old memory
-				// Sat  Mem
-				// 0000 D000 Slot # Bank A = Bank 2
-				// 1000 D000 Slot # Bank B = Bank 1
-				// 2000 E000 Slot #
-				// 3000 F000 Slot #
-				//memcpy( g_aSaturnPages[iPrevPage] + iBankOffset, mem + 0xD000, 0x1000 );
-				//memcpy( g_aSaturnPages[iPrevPage] + 0x2000     , mem + 0xE000, 0x2000 ); // RAM  -> LC slot # old
-
+//memcpy( g_aSaturnPages[iPrevPage] + iBankOffset, mem + 0xD000, 0x1000 );
+//memcpy( g_aSaturnPages[iPrevPage] + 0x2000     , mem + 0xE000, 0x2000 ); // RAM  -> LC slot # old
 				// Bank in the new memory
 				// NOTE: memcpy done in UpdatePaging()
+				modechanging = true;
 
 			} // C084..C087  C08C..C08F
 			else
