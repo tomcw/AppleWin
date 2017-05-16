@@ -2879,20 +2879,58 @@ void _DrawSoftSwitchLanguageCardBank( RECT & rect, int iBankDisplay, int bg_defa
 void _DrawSoftSwitchLanguageCardMem( RECT & rect, int iBankDisplay, int bg_default = BG_INFO )
 {
 	int w  = g_aFontConfig[ FONT_DISASM_DEFAULT ]._nFontWidthAvg;
-	int dx = 7 * w; // "??:R/W r00 "
+	int dx = 7 * w; // "??:2/1/ROM "
+	//                  ##Sat. R/W
 	//                  ^------^
 
 	rect.right = rect.left + dx;
 
+	bool bBankWritable = (memmode & MF_WRITERAM) ? 1 : 0;
+
 	// _DrawSoftSwitchAddress( temp, nAddress, bg_default );
 	DebuggerSetColorBG( DebuggerGetColor( bg_default    ));
-	DebuggerSetColorFG( DebuggerGetColor( FG_DISASM_OPERATOR ));
-	PrintTextCursorX( "   ", rect );
+
+	if ( bBankWritable )
+		DebuggerSetColorFG( DebuggerGetColor( FG_DISASM_BP_S_X )); // Red
+	else
+		DebuggerSetColorFG( DebuggerGetColor( FG_DISASM_OPCODE )); // Yellow
+
+	char sAddr[ 4 ] = "  "; // ##
+	char sText[ 8 ] = "     "; // SAT. R/W
+
+#if defined(RAMWORKS) || defined(SATURN)
+	int iActiveBank = -1;
+
+#ifdef RAMWORKS
+	if (g_eMemType == MEM_TYPE_RAMWORKS)
+	{
+		strncpy( sText, "RWrk", 5 );
+		iActiveBank = g_uActiveBank;
+	}
+#endif
+#ifdef SATURN // SATURN 32K 64K 128K
+	if (g_eMemType == MEM_TYPE_SATURN  )
+	{
+		strncpy( sText, "Sat.", 5 );
+		iActiveBank = g_uSaturnActiveBank;
+	}
+#endif // SATURN
+
+	if (iActiveBank >= 0)
+		sprintf( sAddr, "%02X", (iActiveBank & 0x7F) );
+#endif // SATURN
+
+	PrintTextCursorX( sAddr, rect );
+
+	DebuggerSetColorFG( DebuggerGetColor( FG_INFO_REG )); // light blue
+	PrintTextCursorX( sText, rect );
+
+	rect.left    = rect.right;
+	rect.right  += 4*w;
 
 	// 0 = RAM
 	// 1 = Bank 1
 	// 2 = Bank 2
-	bool bBankWritable = (memmode & MF_WRITERAM) ? 1 : 0;
 
 	//  R/[W]
 	// [R]/W
@@ -2900,46 +2938,10 @@ void _DrawSoftSwitchLanguageCardMem( RECT & rect, int iBankDisplay, int bg_defau
 	const char *pOff = "W";
 	_DrawSoftSwitchHighlight( rect, !bBankWritable, pOn, pOff, bg_default );
 
-
 	DebuggerSetColorBG( DebuggerGetColor( bg_default    ));
 	DebuggerSetColorFG( DebuggerGetColor( FG_DISASM_OPERATOR ));
 	PrintTextCursorX( " ", rect );
 
-	rect.left    = rect.right;
-	rect.right  += 4*w;
-
-#if defined(RAMWORKS) || defined(SATURN)
-	{
-		int iActiveBank = -1;
-		char sText[ 4 ] = "?"; // Default to RAMWORKS
-#ifdef RAMWORKS
-		if (g_eMemType == MEM_TYPE_RAMWORKS)
-		{
-			sText[0] = 'r';
-			iActiveBank = g_uActiveBank;
-		}
-#endif
-#ifdef SATURN // SATURN 32K 64K 128K
-		if (g_eMemType == MEM_TYPE_SATURN  )
-		{
-			sText[0] = 's';
-			iActiveBank = g_uSaturnActiveBank;
-		}
-#endif // SATURN
-
-		if (iActiveBank >= 0)
-		{
-			DebuggerSetColorFG( DebuggerGetColor( FG_INFO_REG )); // light blue
-			PrintTextCursorX( sText, rect );
-
-			sprintf( sText, "%02X", (iActiveBank & 0x7F) );
-			DebuggerSetColorFG( DebuggerGetColor( FG_INFO_ADDRESS ));
-			PrintTextCursorX( sText, rect );
-		}
-		else
-			PrintTextCursorX( "   ", rect );
-	}
-#endif // SATURN
 
 	rect.top    += g_nFontHeight;
 	rect.bottom += g_nFontHeight;
@@ -2989,7 +2991,7 @@ void _DrawSoftSwitchMainAuxBanks( RECT & rect, int bg_default = BG_INFO )
 	temp.left   += dx;
 	temp.right  += 3*w;
 
-	DebuggerSetColorFG( DebuggerGetColor( FG_DISASM_BP_S_X )); // FG_INFO_OPCODE )); Yellow
+	DebuggerSetColorFG( DebuggerGetColor( FG_DISASM_BP_S_X )); // Red
 	DebuggerSetColorBG( DebuggerGetColor( bg_default       ));
 	PrintTextCursorX( "W", temp );
 	_DrawSoftSwitchHighlight( temp, !bAuxWrite, "m", "x", BG_DATA_2 );
