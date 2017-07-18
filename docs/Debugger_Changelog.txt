@@ -2,6 +2,10 @@
 .8 Fixed: Inactive Language Card bank now grayed out, main memory no longer double inverse.
 .7 Fixed: Memory softswitches are now in chronological order, and their background is a dark grey
 .6 Added: Read/Write for Main/Aux memory now shown
+   Rm Read from main mem for $0200-$BFFF; Use OUT C002 to enable
+   Rw Read from aux mem for $0200-$BFFF; Use OUT C003 to enable
+   Wm Write to main mem for $0200-$BFFF; Use OUT C004 to enable
+   WX Write to aux  mem for $0200-$BFFF; Use OUT C005 to enable
 .5 Added: Support for RAMWORKS in the Debugger Language Card Status
 .4 Added: Language Card Status now displayed
 .3 Cleanup drawing of soft switches
